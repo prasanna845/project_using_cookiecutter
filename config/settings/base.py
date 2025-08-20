@@ -48,11 +48,16 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django_tenants.postgresql_backend',
+        'NAME': 'healthcare',
+        'USER': 'postgres',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
@@ -66,19 +71,19 @@ ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 
 # APPS
-# ------------------------------------------------------------------------------
-DJANGO_APPS = [
-    "django.contrib.auth",
+SHARED_APPS = [
+    "django_tenants",  
+    "organization",  
+    "simpleproject.users",  
     "django.contrib.contenttypes",
+    "django.contrib.auth",
     "django.contrib.sessions",
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django.contrib.humanize", # Handy template tags
     "django.contrib.admin",
     "django.forms",
-]
-THIRD_PARTY_APPS = [
+
     "crispy_forms",
     "crispy_bootstrap5",
     "allauth",
@@ -91,12 +96,27 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
 ]
 
-LOCAL_APPS = [
-    "simpleproject.users",
-    # Your stuff: custom apps go here
+TENANT_APPS = [
+    
+    "patients",
 ]
-# https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+
+
+INSTALLED_APPS = list(set(SHARED_APPS + TENANT_APPS))
+
+
+TENANT_MODEL = "organization.Organization"  
+
+TENANT_DOMAIN_MODEL = "organization.Domain"
+
+DATABASE_ROUTERS = (
+    'django_tenants.routers.TenantSyncRouter',
+)
+
+# Optional but recommended
+PUBLIC_SCHEMA_NAME = "public"
+
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------
@@ -152,6 +172,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "django_tenants.middleware.main.TenantMainMiddleware",
 ]
 
 # STATIC
