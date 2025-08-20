@@ -8,7 +8,6 @@ from django.views.generic import RedirectView
 from django.views.generic import UpdateView
 from simpleproject.users.models import User
 
-
 class UserDetailView(LoginRequiredMixin, DetailView):
     model = User
     slug_field = "id"
